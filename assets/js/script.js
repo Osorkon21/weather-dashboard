@@ -136,21 +136,21 @@
 // THEN I am again presented with current and future conditions for that city
 
 const body = $("body");
-const movieNameInput = $("#movie-name-input");
-const cardContainer = $(".card-container");
-const submitBtn = $(".submit-btn");
+const cityNameInput = $("#city-name-input");
+const citySearchContainer = $(".city-search-container");
+const searchBtn = $(".search-btn");
 
-body.on("click", ".submit-btn", onMovieNameInput);
+body.on("click", ".search-btn", onMovieNameInput);
 
 function onMovieNameInput(e) {
   e.preventDefault();
-  var movieName = movieNameInput.val();
-  getAPI(movieName);
+  var cityName = cityNameInput.val();
+  getAPI(cityName);
 }
 
-async function getAPI(movieName) {
-  var movieInfo = `http://www.omdbapi.com/?t=${convertSpaces(movieName)}&type=movie&apikey=96cda9bd`;
-  const response = await fetch(movieInfo);
+async function getAPI(cityName) {
+  var cityInfo = `http://www.omdbapi.com/?t=${convertSpaces(cityName)}&type=movie&apikey=96cda9bd`;
+  const response = await fetch(cityInfo);
 
   console.log(response);
 
@@ -158,18 +158,18 @@ async function getAPI(movieName) {
 
   console.log(data);
 
-  if (data.Response === "True")
-    addMovieCard(data);
-  else
-    movieNameInput.val("Movie not found!");
+  // if (data.Response === "True")
+  //   addMovieCard(data);
+  // else
+  //   cityNameInput.val("Movie not found!");
 }
 
-function convertSpaces(movieName) {
-  for (var i = 0; i < movieName.length; i++)
-    if (movieName[i] === " ")
-      movieName[i] = "+";
+function convertSpaces(cityName) {
+  for (var i = 0; i < cityName.length; i++)
+    if (cityName[i] === " ")
+      cityName[i] = "+";
 
-  return movieName;
+  return cityName;
 }
 
 function addMovieCard(data) {
@@ -182,7 +182,7 @@ function addMovieCard(data) {
       rotTomRating = ratingsArr[i].Value;
   }
 
-  cardContainer.append($(`
+  citySearchContainer.append($(`
   <div class="card d-flex" style="width: 20rem;">
     <img class="card-img-top" src="${posterURL}" alt="No poster found!">
     <div class="card-body">
