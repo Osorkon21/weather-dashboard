@@ -140,28 +140,46 @@ const cityNameInput = $("#city-name-input");
 const citySearchContainer = $(".city-search-container");
 const searchBtn = $(".search-btn");
 
-body.on("click", ".search-btn", onMovieNameInput);
+body.on("click", ".search-btn", onCityNameInput);
 
-function onMovieNameInput(e) {
+function onCityNameInput(e) {
   e.preventDefault();
   var cityName = cityNameInput.val();
-  getAPI(cityName);
+  displayCityWeather(cityName);
 }
 
-async function getAPI(cityName) {
-  var cityInfo = `http://www.omdbapi.com/?t=${convertSpaces(cityName)}&type=movie&apikey=96cda9bd`;
-  const response = await fetch(cityInfo);
+async function displayCityWeather(cityName) {
+  const currentWeatherAPI = `https://api.openweathermap.org/data/2.5/weather?q=${convertSpaces(cityName)}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial`;
 
-  console.log(response);
+  var currentWeatherResponse = await fetch(currentWeatherAPI);
+  const currentWeatherData = await currentWeatherResponse.json();
 
-  const data = await response.json();
+  console.log(currentWeatherData);
 
-  console.log(data);
+  const geoAPI = `http://api.openweathermap.org/geo/1.0/direct?q=${convertSpaces(cityName)}&appid=fe0219a594b50b6a018a708bc7c62289`;
 
-  // if (data.Response === "True")
-  //   addMovieCard(data);
-  // else
-  //   cityNameInput.val("Movie not found!");
+  const geoResponse = await fetch(geoAPI);
+  const geoData = await geoResponse.json();
+
+  if (geoData.length === 0) {
+    cityNameInput.val("");
+    cityNameInput.attr("placeholder", "City not found! Try again.");
+    return;
+  }
+  else {
+    cityNameInput.val("");
+    cityNameInput.attr("placeholder", "city name");
+  }
+
+  const lat = geoData[0].lat;
+  const lon = geoData[0].lon;
+
+  const cityAPI = `http://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial`;
+
+  const cityResponse = await fetch(cityAPI);
+  const cityForecastData = await cityResponse.json();
+
+  console.log(cityForecastData);
 }
 
 function convertSpaces(cityName) {

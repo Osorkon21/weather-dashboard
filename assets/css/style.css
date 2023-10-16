@@ -1,0 +1,9 @@
+header {
+  font-size: 3rem;
+  text-align: center;
+  background-image: linear-gradient(to right, rgb(50, 0, 150), rgb(120, 0, 170));
+}
+
+.search-btn:active {
+  opacity: 0.7;
+}
