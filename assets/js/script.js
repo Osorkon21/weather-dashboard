@@ -1,36 +1,4 @@
-// api key: fe0219a594b50b6a018a708bc7c62289
-
-
-
-// openweatherapi call
-
-// api call: api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial
-
-// parameters of openweather api call
-
-// lat	required	Latitude.If you need the geocoder to automatic convert city names and zip - codes to geo coordinates and the other way around, please use our Geocoding API
-
-// lon	required	Longitude.If you need the geocoder to automatic convert city names and zip - codes to geo coordinates and the other way around, please use our Geocoding API
-
-// appid	required	Your unique API key(you can always find it on your account page under the "API key" tab)
-
-// units	optional	Units of measurement.standard, metric and imperial units are available.If you do not use the units parameter, standard units will be applied by default. Learn more
-
-// mode	optional	Response format.JSON format is used by default. To get data in XML format use mode = xml.Learn more
-
-// cnt	optional	A number of timestamps, which will be returned in the API response.Learn more
-
-// units	optional	Units of measurement.standard, metric and imperial units are available.If you do not use the units parameter, standard units will be applied by default. Learn more
-
-// lang	optional	You can use the lang parameter to get the output in your language.Learn more
-
-
-
 // returned fields in weather api response
-
-// cod Internal parameter
-
-// message Internal parameter
 
 // cntA number of timestamps returned in the API response
 
@@ -89,33 +57,6 @@
 // city.sunset Sunset time, Unix, UTC
 
 
-// geolocation api call
-
-// http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid=fe0219a594b50b6a018a708bc7c62289
-
-// parameters of openweather geolocation api call
-
-// q	required	City name, state code(only for the US) and country code divided by comma.Please use ISO 3166 country codes.
-
-// appid	required	Your unique API key(you can always find it on your account page under the "API key" tab)
-
-// limit	optional	Number of the locations in the API response(up to 5 results can be returned in the API response)
-
-
-
-// returned fields in GEO api response
-
-// zip Specified zip / post code in the API request
-
-// name Name of the found area
-
-// lat Geographical coordinates of the centroid of found zip / post code(latitude)
-
-// lon Geographical coordinates of the centroid of found zip / post code(longitude)
-
-// country Country of the found zip / post code
-
-
 
 // AS A traveler
 // I WANT to see the weather outlook for multiple cities
@@ -136,32 +77,39 @@
 // THEN I am again presented with current and future conditions for that city
 
 const body = $("body");
-const cityNameInput = $("#city-name-input");
 const citySearchContainer = $(".city-search-container");
+const form = $("form");
+const cityNameInput = $("#city-name-input");
 const searchBtn = $(".search-btn");
+const savedCityBtns = $(".saved-city-buttons");
+const todayForecast = $(".today-forecast");
+const boldTodayForecast = $(".bold-today-forecast");
+const currentTemp = $(".current-temp");
+const currentWind = $(".current-wind");
+const currentHumidity = $(".current-humidity");
+const fiveDayForecastHeadline = $(".five-day-forecast-headline");
 
-body.on("click", ".search-btn", onCityNameInput);
+var searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
 
 function onCityNameInput(e) {
   e.preventDefault();
   var cityName = cityNameInput.val();
-  displayCityWeather(cityName);
+  displayWeather(cityName);
+  saveSearchHistory(cityName);
+  genSearchHistoryBtn(cityName);
 }
 
-async function displayCityWeather(cityName) {
+function onSavedCityClick() {
+  displayWeather($(this).val());
+}
+
+async function displayWeather(cityName) {
   const currentWeatherAPI = `https://api.openweathermap.org/data/2.5/weather?q=${convertSpaces(cityName)}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial`;
 
-  var currentWeatherResponse = await fetch(currentWeatherAPI);
+  const currentWeatherResponse = await fetch(currentWeatherAPI);
   const currentWeatherData = await currentWeatherResponse.json();
 
-  console.log(currentWeatherData);
-
-  const geoAPI = `http://api.openweathermap.org/geo/1.0/direct?q=${convertSpaces(cityName)}&appid=fe0219a594b50b6a018a708bc7c62289`;
-
-  const geoResponse = await fetch(geoAPI);
-  const geoData = await geoResponse.json();
-
-  if (geoData.length === 0) {
+  if (currentWeatherData.cod === "404") {
     cityNameInput.val("");
     cityNameInput.attr("placeholder", "City not found! Try again.");
     return;
@@ -171,8 +119,10 @@ async function displayCityWeather(cityName) {
     cityNameInput.attr("placeholder", "city name");
   }
 
-  const lat = geoData[0].lat;
-  const lon = geoData[0].lon;
+  displayCurrentWeather(currentWeatherData);
+
+  const lat = currentWeatherData.coord.lat;
+  const lon = currentWeatherData.coord.lon;
 
   const cityAPI = `http://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial`;
 
@@ -180,6 +130,8 @@ async function displayCityWeather(cityName) {
   const cityForecastData = await cityResponse.json();
 
   console.log(cityForecastData);
+
+  displayFiveDayForecast(cityForecastData);
 }
 
 function convertSpaces(cityName) {
@@ -190,29 +142,40 @@ function convertSpaces(cityName) {
   return cityName;
 }
 
-function addMovieCard(data) {
-  var ratingsArr = data.Ratings;
-  var rotTomRating = "";
-  var posterURL = data.Poster !== "N/A" ? data.Poster : "";
+function displayCurrentWeather(currentWeatherData) {
+  $(".weather-icon-img").remove();
 
-  for (var i = 0; i < ratingsArr.length; i++) {
-    if (ratingsArr[i].Source === "Rotten Tomatoes")
-      rotTomRating = ratingsArr[i].Value;
-  }
+  const imgIcon = currentWeatherData.weather[0].icon;
+  const newImg = $("<img>").attr("src", `https://openweathermap.org/img/wn/${imgIcon}.png`);
+  newImg.attr("class", "weather-icon-img");
 
-  citySearchContainer.append($(`
-  <div class="card d-flex" style="width: 20rem;">
-    <img class="card-img-top" src="${posterURL}" alt="No poster found!">
-    <div class="card-body">
-      <h5 class="card-title">${data.Title}</h5>
-      <ul>
-        <li>Plot: ${data.Plot}</li>
-        <li>Year: ${data.Year}</li>
-        <li>Runtime: ${data.Runtime}</li>
-        <li>Starring: ${data.Actors}</li>
-        <li>Rotten Tomatoes: ${(rotTomRating ? rotTomRating : "N/A")}</li>
-      </ul>
-      <a href="#" class="btn btn-primary">Add to Cart</a>
-    </div>
-  </div>`));
+  todayForecast.attr("class", "today-forecast border border-white border-2 p-2");
+
+  boldTodayForecast.text(currentWeatherData.name + dayjs().format(" (M/D/YYYY)"));
+  boldTodayForecast.append(newImg);
+
+  currentTemp.text(`Temp: ${Math.round(currentWeatherData.main.temp)}\xB0F`);
+  currentWind.text(`Wind: ${Math.round(currentWeatherData.wind.speed)} MPH`);
+  currentHumidity.text(`Humidity: ${currentWeatherData.main.humidity}%`);
+
+  form.attr("class", "d-grid border-bottom border-white border-2");
 }
+
+function displayFiveDayForecast(cityForecastData) {
+  fiveDayForecastHeadline.text("5-day forecast:");
+
+  // display 5 boxes...
+}
+
+function saveSearchHistory(cityName) {
+  searchHistory.push(cityName);
+  localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+}
+
+function genSearchHistoryBtn(cityName) {
+  // <button type="button" class="saved-city btn-outline-secondary bg-gradient">Saved city
+  //   weather</button>
+}
+
+body.on("click", ".search-btn", onCityNameInput);
+body.on("click", ".saved-city", onSavedCityClick);

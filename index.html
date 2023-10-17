@@ -17,7 +17,7 @@
 
       <div class="city-search-container me-3">
 
-        <form class="d-grid border-bottom border-white border-2">
+        <form class="d-grid">
           <div class="form-group">
             <label for="city-name-input" class="h2">Search for a City:</label>
             <input type="text" class="form-control mt-1" id="city-name-input" aria-describedby="emailHelp"
@@ -26,24 +26,27 @@
           <button type="submit" class="btn btn-primary bg-gradient mt-4 search-btn mb-3">Search</button>
         </form>
 
-        <div class="saved-city-buttons d-grid gap-3 mt-3">
-
-          <button type="button" class="saved-city btn-outline-secondary bg-gradient">Saved city
-            weather</button>
-
-          <button type="button" class="saved-city btn-outline-secondary bg-gradient">San Francisco</button>
-        </div>
+        <div class="saved-city-buttons d-grid gap-3 mt-3"></div>
 
       </div>
 
       <div class="forecast-container d-flex flex-column flex-grow-1 gap-3">
 
-        <div class="today-forecast border border-white">today's forecast</div>
+        <div class="today-forecast">
+          <div class="bold-today-forecast d-flex h2"></div>
+          <div class="regular-today-forecast">
+            <p class="current-temp"></p>
+            <p class="current-wind"></p>
+            <p class="current-humidity"></p>
+          </div>
+        </div>
 
-        <div class="five-day-forecast">five day forecast</div>
+        <div class="five-day-forecast-headline h3"></div>
+        <div class="five-day-forecast-container h3"></div>
       </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="./assets/js/script.js"></script>
   </body>
