@@ -77,10 +77,8 @@
 // THEN I am again presented with current and future conditions for that city
 
 const body = $("body");
-const citySearchContainer = $(".city-search-container");
 const form = $("form");
 const cityNameInput = $("#city-name-input");
-const searchBtn = $(".search-btn");
 const savedCityBtns = $(".saved-city-buttons");
 const todayForecast = $(".today-forecast");
 const boldTodayForecast = $(".bold-today-forecast");
@@ -88,35 +86,68 @@ const currentTemp = $(".current-temp");
 const currentWind = $(".current-wind");
 const currentHumidity = $(".current-humidity");
 const fiveDayForecastHeadline = $(".five-day-forecast-headline");
+const fiveDayForecastContainer = $(".five-day-forecast-container");
 
 var searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
 
+// add searchHistory buttons here...
+
+// don't forget to add below line if searchHistory contains something
+// form.attr("class", "d-grid border-bottom border-white border-2");
+
 function onCityNameInput(e) {
   e.preventDefault();
-  var cityName = cityNameInput.val();
+  var cityName = formatCityName(cityNameInput.val());
   displayWeather(cityName);
-  saveSearchHistory(cityName);
-  genSearchHistoryBtn(cityName);
 }
 
 function onSavedCityClick() {
-  displayWeather($(this).val());
+  displayWeather($(this).text(), false);
 }
 
-async function displayWeather(cityName) {
+function formatCityName(cityName) {
+  var trimmedName = cityName.trim();
+  var splitName = trimmedName.split(" ");
+  var capitalizedName = "";
+
+  for (var i = 0; i < splitName.length; i++) {
+    var firstLetter = splitName[i][0];
+    var restOfWord = splitName[i].slice(1);
+
+    if (firstLetter === undefined)
+      continue;
+
+    var word = (firstLetter.toUpperCase() + restOfWord.toLowerCase());
+    capitalizedName += word;
+
+    if (i !== splitName.length - 1)
+      capitalizedName += " ";
+  }
+
+  // edge case
+  if (capitalizedName === "Washington D.c.")
+    capitalizedName = "Washington D.C.";
+
+  return capitalizedName;
+}
+
+async function displayWeather(cityName, saveHistory = true) {
   const currentWeatherAPI = `https://api.openweathermap.org/data/2.5/weather?q=${convertSpaces(cityName)}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial`;
 
   const currentWeatherResponse = await fetch(currentWeatherAPI);
   const currentWeatherData = await currentWeatherResponse.json();
 
   if (currentWeatherData.cod === "404") {
-    cityNameInput.val("");
-    cityNameInput.attr("placeholder", "City not found! Try again.");
+    changeCityNameInput(true);
     return;
   }
   else {
-    cityNameInput.val("");
-    cityNameInput.attr("placeholder", "city name");
+    changeCityNameInput(false);
+
+    if (saveHistory && !isNameAlreadySaved(cityName)) {
+      saveSearchHistory(cityName);
+      genSearchHistoryBtn(cityName);
+    }
   }
 
   displayCurrentWeather(currentWeatherData);
@@ -142,6 +173,25 @@ function convertSpaces(cityName) {
   return cityName;
 }
 
+function changeCityNameInput(cityNotFound) {
+  if (cityNotFound) {
+    cityNameInput.val("");
+    cityNameInput.attr("placeholder", "City not found! Try again.");
+  }
+  else {
+    cityNameInput.val("");
+    cityNameInput.attr("placeholder", "city name");
+  }
+}
+
+function isNameAlreadySaved(cityName) {
+  for (var i = 0; i < searchHistory.length; i++)
+    if (cityName === searchHistory[i])
+      return true;
+
+  return false;
+}
+
 function displayCurrentWeather(currentWeatherData) {
   $(".weather-icon-img").remove();
 
@@ -157,12 +207,12 @@ function displayCurrentWeather(currentWeatherData) {
   currentTemp.text(`Temp: ${Math.round(currentWeatherData.main.temp)}\xB0F`);
   currentWind.text(`Wind: ${Math.round(currentWeatherData.wind.speed)} MPH`);
   currentHumidity.text(`Humidity: ${currentWeatherData.main.humidity}%`);
-
-  form.attr("class", "d-grid border-bottom border-white border-2");
 }
 
 function displayFiveDayForecast(cityForecastData) {
   fiveDayForecastHeadline.text("5-day forecast:");
+
+  // erase previous 5 boxes... (remove all children of div)
 
   // display 5 boxes...
 }
@@ -173,8 +223,10 @@ function saveSearchHistory(cityName) {
 }
 
 function genSearchHistoryBtn(cityName) {
-  // <button type="button" class="saved-city btn-outline-secondary bg-gradient">Saved city
-  //   weather</button>
+  savedCityBtns.append(`
+  <button type="button" class="saved-city btn-outline-secondary bg-gradient">${cityName}</button>`);
+
+  form.attr("class", "d-grid border-bottom border-white border-2");
 }
 
 body.on("click", ".search-btn", onCityNameInput);
