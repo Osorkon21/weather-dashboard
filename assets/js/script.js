@@ -97,7 +97,7 @@ async function displayWeather(cityName, saveHistory = true) {
   // longitude
   const lon = currentWeatherData.coord.lon;
 
-  const cityAPI = `http://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial`;
+  const cityAPI = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=fe0219a594b50b6a018a708bc7c62289&units=imperial`;
 
   const cityResponse = await fetch(cityAPI);
   const cityForecastData = await cityResponse.json();
