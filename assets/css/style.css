@@ -1,9 +1,10 @@
+/* changes font size and adds chromatic background to header */
 header {
   font-size: 3rem;
-  text-align: center;
   background-image: linear-gradient(to right, rgb(50, 0, 150), rgb(120, 0, 170));
 }
 
+/* Search button becomes more transparent on button activation */
 .search-btn:active {
   opacity: 0.7;
 }
